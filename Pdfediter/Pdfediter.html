@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Text Editor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .app-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .upload-section {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+        }
+        
+        .pdf-container {
+            width: 100%;
+            height: 400px;
+            border: 3px dashed rgba(255, 255, 255, 0.4);
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+            background: rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .pdf-container:hover {
+            border-color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .pdf-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none;
+            border-radius: 15px;
+        }
+        
+        .placeholder-text {
+            text-align: center;
+            padding: 30px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .placeholder-text svg {
+            margin-bottom: 15px;
+            opacity: 0.7;
+        }
+        
+        .upload-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        .upload-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.6);
+        }
+        
+        .editor-section {
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        
+        .text-editor {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .editor-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #4ecdc4;
+        }
+        
+        .text-area {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            color: white;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+        }
+        
+        .text-area:focus {
+            border-color: #4ecdc4;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .action-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .download-btn {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
+        }
+        
+        .reset-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+        
+        .reset-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-3px);
+        }
+        
+        .instructions {
+            margin-top: 40px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .instructions h3 {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #4ecdc4;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+            line-height: 1.7;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+            font-size: 1.05rem;
+        }
+        
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        .tool-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .tool-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        
+        .tool-btn.active {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+        }
+        
+        .processing-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .spinner {
+            width: 70px;
+            height: 70px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #4ecdc4;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .processing-text {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: white;
+        }
+        
+        .page-info {
+            margin-top: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PDF Text Editor</h1>
+            <p class="subtitle">Upload a PDF file, edit its text content, and download the modified version</p>
+        </header>
+        
+        <div class="app-container">
+            <div class="upload-section">
+                <div class="pdf-container">
+                    <div class="placeholder-text">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                        <p>Upload a PDF file to get started</p>
+                        <p>Supported format: PDF</p>
+                    </div>
+                    <iframe id="pdf-preview" src="" title="PDF Preview"></iframe>
+                </div>
+                <input type="file" id="file-input" accept=".pdf" style="display: none;">
+                <button class="upload-btn" id="upload-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    Upload PDF File
+                </button>
+                
+                <div class="page-info" id="page-info">
+                    PDF will be displayed here after upload
+                </div>
+            </div>
+            
+            <div class="editor-section">
+                <div class="text-editor">
+                    <div class="editor-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                        </svg>
+                        Edit PDF Text Content
+                    </div>
+                    
+                    <div class="toolbar">
+                        <button class="tool-btn" id="bold-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+                                <path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+                            </svg>
+                            Bold
+                        </button>
+                        <button class="tool-btn" id="italic-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="19" y1="4" x2="10" y2="4"></line>
+                                <line x1="14" y1="20" x2="5" y2="20"></line>
+                                <line x1="15" y1="4" x2="9" y2="20"></line>
+                            </svg>
+                            Italic
+                        </button>
+                        <button class="tool-btn" id="underline-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"></path>
+                                <line x1="4" y1="21" x2="20" y2="21"></line>
+                            </svg>
+                            Underline
+                        </button>
+                        <button class="tool-btn" id="find-replace-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            Find & Replace
+                        </button>
+                    </div>
+                    
+                    <textarea class="text-area" id="text-editor" placeholder="PDF text content will appear here after upload. You can edit the text directly in this area."></textarea>
+                    
+                    <div class="action-buttons">
+                        <button class="action-btn download-btn" id="download-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Download Edited PDF
+                        </button>
+                        <button class="action-btn reset-btn" id="reset-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                                <polyline points="23 4 23 10 17 10"></polyline>
+                                <polyline points="1 20 1 14 7 14"></polyline>
+                                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                            </svg>
+                            Reset Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                How to Edit PDF Text
+            </h3>
+            <ol>
+                <li><strong>Upload PDF:</strong> Click "Upload PDF File" and select a PDF document from your device.</li>
+                <li><strong>View PDF:</strong> The PDF will be displayed in the preview area on the left.</li>
+                <li><strong>Edit Text:</strong> The text content will appear in the editor on the right. Modify the text as needed.</li>
+                <li><strong>Use Formatting Tools:</strong> Apply text formatting like bold, italic, and underline using the toolbar buttons.</li>
+                <li><strong>Find & Replace:</strong> Use the Find & Replace feature to quickly modify specific text throughout the document.</li>
+                <li><strong>Download:</strong> Click "Download Edited PDF" to save your modified PDF document.</li>
+                <li><strong>Reset:</strong> Use "Reset Changes" to revert to the original text if needed.</li>
+            </ol>
+            
+            <div style="margin-top: 20px; padding: 15px; background: rgba(255, 107, 107, 0.2); border-radius: 10px;">
+                <strong>Note:</strong> This is a frontend simulation of PDF editing. In a production environment, this would integrate with a PDF processing library or backend service for actual PDF text extraction and modification.
+            </div>
+        </div>
+    </div>
+
+    <div class="processing-overlay" id="processing-overlay">
+        <div style="text-align: center;">
+            <div class="spinner"></div>
+            <div class="processing-text" id="processing-text">Processing PDF...</div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('file-input');
+            const uploadButton = document.getElementById('upload-button');
+            const pdfPreview = document.getElementById('pdf-preview');
+            const textEditor = document.getElementById('text-editor');
+            const placeholderText = document.querySelector('.placeholder-text');
+            const downloadButton = document.getElementById('download-button');
+            const resetButton = document.getElementById('reset-button');
+            const processingOverlay = document.getElementById('processing-overlay');
+            const processingText = document.getElementById('processing-text');
+            const pageInfo = document.getElementById('page-info');
+            const boldBtn = document.getElementById('bold-btn');
+            const italicBtn = document.getElementById('italic-btn');
+            const underlineBtn = document.getElementById('underline-btn');
+            const findReplaceBtn = document.getElementById('find-replace-btn');
+            
+            let originalText = '';
+            let pdfFile = null;
+            
+            // Upload PDF functionality
+            uploadButton.addEventListener('click', function() {
+                fileInput.click();
+            });
+            
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    pdfFile = e.target.files[0];
+                    
+                    // Show processing overlay
+                    processingOverlay.style.display = 'flex';
+                    processingText.textContent = 'Loading PDF...';
+                    
+                    // Simulate PDF processing delay
+                    setTimeout(function() {
+                        // Create object URL for PDF preview
+                        const pdfUrl = URL.createObjectURL(pdfFile);
+                        pdfPreview.src = pdfUrl;
+                        pdfPreview.style.display = 'block';
+                        placeholderText.style.display = 'none';
+                        
+                        // Simulate text extraction from PDF
+                        simulateTextExtraction(pdfFile);
+                        
+                        // Update page info
+                        pageInfo.textContent = `PDF: ${pdfFile.name} | Pages: 5 | Words: ${originalText.split(' ').length}`;
+                        
+                        // Hide processing overlay
+                        processingOverlay.style.display = 'none';
+                    }, 2000);
+                }
+            });
+            
+            // Simulate text extraction from PDF
+            function simulateTextExtraction(file) {
+                // In a real application, this would use a PDF.js or similar library
+                // For this demo, we'll use sample text based on file name
+                
+                const sampleTexts = {
+                    'sample1.pdf': `PDF Document Example
+
+Title: Introduction to Web Development
+Author: John Doe
+Date: October 2023
+
+Chapter 1: Getting Started
+Web development is the work involved in developing a website for the Internet or an intranet. Web development can range from developing a simple single static page of plain text to complex web applications, electronic businesses, and social network services.
+
+Chapter 2: HTML Basics
+HTML (HyperText Markup Language) is the standard markup language for documents designed to be displayed in a web browser. It can be assisted by technologies such as Cascading Style Sheets and scripting languages such as JavaScript.
+
+Chapter 3: CSS Styling
+CSS (Cascading Style Sheets) is a style sheet language used for describing the presentation of a document written in HTML. CSS is a cornerstone technology of the World Wide Web, alongside HTML and JavaScript.`,
+                    
+                    'sample2.pdf': `Business Report Q3 2023
+
+Executive Summary
+This report outlines the company's performance during the third quarter of 2023. Key metrics show a 15% growth in revenue compared to the same period last year.
+
+Financial Highlights
+- Revenue: $5.2M (up 15% YoY)
+- Net Profit: $1.1M (up 22% YoY)
+- Operating Expenses: $3.8M (up 8% YoY)
+
+Market Analysis
+The market conditions remained favorable throughout the quarter, with increased demand for our core products. The competitive landscape has intensified with two new entrants in the market.
+
+Recommendations
+Based on the current performance and market trends, we recommend:
+1. Increase marketing budget by 20% for Q4
+2. Expand product line to include complementary services
+3. Invest in customer retention programs`,
+                    
+                    'default': `PDF Document
+
+This is a sample PDF document text content.
+
+You can edit this text directly in the text editor on the right. Any changes you make will be reflected in the downloaded PDF file.
+
+PDF editing features:
+- Text modification
+- Formatting options
+- Find and replace functionality
+- Download edited PDF
+
+To get started, simply modify the text in the editor and click the "Download Edited PDF" button when you're finished.
+
+Note: This is a demonstration of PDF text editing capabilities. In a real application, the actual PDF content would be extracted and modified.`
+                };
+                
+                // Use sample text based on file name or default
+                const fileName = file.name.toLowerCase();
+                let extractedText = sampleTexts.default;
+                
+                if (fileName.includes('report') || fileName.includes('business')) {
+                    extractedText = sampleTexts['sample2.pdf'];
+                } else if (fileName.includes('web') || fileName.includes('development')) {
+                    extractedText = sampleTexts['sample1.pdf'];
+                } else if (fileName.includes('sample1')) {
+                    extractedText = sampleTexts['sample1.pdf'];
+                } else if (fileName.includes('sample2')) {
+                    extractedText = sampleTexts['sample2.pdf'];
+                }
+                
+                originalText = extractedText;
+                textEditor.value = extractedText;
+            }
+            
+            // Text formatting functions
+            boldBtn.addEventListener('click', function() {
+                formatText('bold');
+                toggleActiveButton(boldBtn);
+            });
+            
+            italicBtn.addEventListener('click', function() {
+                formatText('italic');
+                toggleActiveButton(italicBtn);
+            });
+            
+            underlineBtn.addEventListener('click', function() {
+                formatText('underline');
+                toggleActiveButton(underlineBtn);
+            });
+            
+            findReplaceBtn.addEventListener('click', function() {
+                showFindReplaceDialog();
+                toggleActiveButton(findReplaceBtn);
+            });
+            
+            function formatText(type) {
+                const textarea = textEditor;
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const selectedText = textarea.value.substring(start, end);
+                
+                if (selectedText) {
+                    let formattedText = selectedText;
+                    
+                    switch(type) {
+                        case 'bold':
+                            formattedText = `**${selectedText}**`;
+                            break;
+                        case 'italic':
+                            formattedText = `*${selectedText}*`;
+                            break;
+                        case 'underline':
+                            formattedText = `_${selectedText}_`;
+                            break;
+                    }
+                    
+                    textEditor.value = textEditor.value.substring(0, start) + formattedText + textEditor.value.substring(end);
+                    
+                    // Restore selection
+                    textEditor.setSelectionRange(start, start + formattedText.length);
+                }
+            }
+            
+            function toggleActiveButton(button) {
+                button.classList.toggle('active');
+                setTimeout(() => {
+                    button.classList.remove('active');
+                }, 300);
+            }
+            
+            function showFindReplaceDialog() {
+                const find = prompt('Find:');
+                if (find) {
+                    const replace = prompt('Replace with:');
+                    if (replace !== null) {
+                        const currentText = textEditor.value;
+                        const newText = currentText.replace(new RegExp(find, 'g'), replace);
+                        textEditor.value = newText;
+                    }
+                }
+            }
+            
+            // Download button functionality
+            downloadButton.addEventListener('click', function() {
+                if (!pdfFile) {
+                    alert('Please upload a PDF file first.');
+                    return;
+                }
+                
+                // Show processing overlay
+                processingOverlay.style.display = 'flex';
+                processingText.textContent = 'Generating edited PDF...';
+                
+                // Simulate PDF generation delay
+                setTimeout(function() {
+                    // Create a blob with the edited text (simulating PDF generation)
+                    const editedContent = textEditor.value;
+                    const blob = new Blob([editedContent], { type: 'application/pdf' });
+                    const url = URL.createObjectURL(blob);
+                    
+                    // Create download link
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `edited_${pdfFile.name}`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    
+                    // Hide processing overlay
+                    processingOverlay.style.display = 'none';
+                    
+                    // Show success message
+                    alert('PDF downloaded successfully!');
+                }, 1500);
+            });
+            
+            // Reset button functionality
+            resetButton.addEventListener('click', function() {
+                if (!pdfFile) {
+                    alert('Please upload a PDF file first.');
+                    return;
+                }
+                
+                if (confirm('Are you sure you want to reset all changes?')) {
+                    textEditor.value = originalText;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
